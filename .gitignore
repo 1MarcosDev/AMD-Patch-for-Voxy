@@ -1,0 +1,9 @@
+build/
+.gradle/
+voxy-amd-patch/
+run/
+out/
+*.ipr
+*.iws
+*.iml
+.idea/

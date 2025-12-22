@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "amd-patch-for-voxy",
+	"version": "${version}",
+	"name": "AMD Patch for Voxy",
+	"description": "Fixes rendering issues on AMD RX500 series cards for Voxy.",
+	"authors": [
+		"Marquinhos0550"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/amd-patch-for-voxy/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.amdfix.AMDPatchForVoxy"
+		],
+		"client": [
+			"com.amdfix.AMDPatchForVoxyClient"
+		]
+	},
+	"mixins": [
+		"amd-patch-for-voxy.mixins.json",
+		{
+			"config": "amd-patch-for-voxy.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.3",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
