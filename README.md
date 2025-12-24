@@ -44,7 +44,7 @@ The community has reported successful tests on the following GPU architectures:
 
 ## Installation
 
-1.  Ensure you have installed the appropriate mod loader (Fabric/Forge) for your Minecraft version.
+1.  Ensure you have installed the appropriate mod loader (Fabric) for your Minecraft version.
 2.  Download and install the **official Voxy mod** from its official source.
 3.  Download the latest release of `AMD-Patch-for-Voxy.jar` from the [Releases page](../../releases) of this repository.
 4.  Place **both** the official Voxy jar AND this patch jar into your `.minecraft/mods` folder.
