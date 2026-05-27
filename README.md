@@ -22,11 +22,24 @@ Voxy is an incredible LOD mod, but it currently suffers from critical compatibil
 
 This is a **standalone patcher** that uses Mixins to modify rendering behavior at runtime. It aims to make the mod playable on AMD hardware by addressing specific occlusion and rendering conflicts.
 
+### The Technical Problem
+
+Voxy uses a **Hierarchical Z-Buffer (HiZ)** compute shader to cull invisible LOD chunks. On AMD Polaris GPUs (e.g. RX 580) the driver returns bogus near-zero values for `texelFetch` on depth textures. This corrupts the `REDUCTION` (min/max) operation, causing chunks to flicker as the camera moves.
+
+Additionally, Voxy's `Capabilities` class detects the broken sampler and throws `IllegalStateException("it bork, amd is bork")`, crashing the game on startup.
+
+### Our Fix
+
+This patch works around both issues:
+
+1. **Prevents the startup crash** — Bypasses Voxy's AMD depth-sampler test so the game can load.
+2. **Fixes the shader** — Intercepts the HiZ traversal compute-shader source before Voxy compiles it, and injects a clamp that forces buggy near-zero depth reads to `1.0f` (far plane). This makes the culling more conservative (render rather than incorrectly cull).
+
 ## How it Works (Technical & Legal Note)
 
 This `.jar` file contains **NO original code, binaries, or assets** from the Voxy mod.
 
-It is strictly a patcher that utilizes the Fabric/Forge Mixin system to inject necessary fixes into the game's memory as it launches. Because of this, **you must have the original Voxy mod installed** for this patch to work. It does not function on its own.
+It is strictly a patcher that utilizes the Fabric Mixin system to inject necessary fixes into the game's memory as it launches. Because of this, **you must have the original Voxy mod installed** for this patch to work. It does not function on its own.
 
 ### Performance Trade-off
 
@@ -34,21 +47,36 @@ To fix the rendering corruption on AMD cards, this patch may need to alter or di
 
 **What this means for you:** While the game will render correctly, you may experience lower FPS compared to Nvidia users in visually complex scenes. This is a known and necessary trade-off to get the mod working on AMD architecture.
 
+## Requirements
+
+- **Minecraft:** `26.1.2`
+- **Fabric Loader:** `>= 0.19.2`
+- **Java:** `25`
+- **[Voxy](https://github.com/MCRcortex/voxy):** `>= 0.2.0`
+
 ## Tested Hardware
 
 The community has reported successful tests on the following GPU architectures:
 
-* **RX 500 Series:** (e.g., RX 550, RX 560, RX 580) - *Confirmed Working*
+* **RX 500 Series:** (e.g., RX 550, RX 560, RX 580) — *Confirmed Working*
 
 > *Have you tested this on RX 6000, 7000, or older cards? Please open an Issue to let us know so we can update this list!*
 
 ## Installation
 
-1.  Ensure you have installed the appropriate mod loader (Fabric) for your Minecraft version.
-2.  Download and install the **official Voxy mod** from its official source.
-3.  Download the latest release of `AMD-Patch-for-Voxy.jar` from the [Releases page](../../releases) of this repository.
-4.  Place **both** the official Voxy jar AND this patch jar into your `.minecraft/mods` folder.
-5.  Launch the game.
+1. Ensure you have installed the appropriate mod loader (Fabric) for your Minecraft version.
+2. Download and install the **official Voxy mod** from its official source.
+3. Download the latest release of `AMD-Patch-for-Voxy.jar` from the [Releases page](../../releases) of this repository.
+4. Place **both** the official Voxy jar AND this patch jar into your `.minecraft/mods` folder.
+5. Launch the game.
+
+## Building from Source
+
+```bash
+./gradlew clean build
+```
+
+The built JAR will be in `build/libs/`.
 
 ## Contributing
 

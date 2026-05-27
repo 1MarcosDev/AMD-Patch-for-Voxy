@@ -9,4 +9,5 @@ pluginManagement {
 	}
 }
 
-include 'voxy-amd-patch'
+// Should match your modid
+rootProject.name = 'amd-patch-for-voxy'

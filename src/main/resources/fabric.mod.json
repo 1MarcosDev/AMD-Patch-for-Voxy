@@ -3,23 +3,19 @@
 	"id": "amd-patch-for-voxy",
 	"version": "${version}",
 	"name": "AMD Patch for Voxy",
-	"description": "Fixes rendering issues on AMD RX500 series cards for Voxy.",
+	"description": "Fixes rendering issues on AMD GPUs (especially Polaris/RX 500 series) for Voxy's Hierarchical Z-Buffer culling.",
 	"authors": [
 		"Marquinhos0550"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/Marquinhos0550/AMD-Patch-for-Voxy"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/amd-patch-for-voxy/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
-			"com.amdfix.AMDPatchForVoxy"
-		],
 		"client": [
-			"com.amdfix.AMDPatchForVoxyClient"
+			"com.amdfix.client.AMDPatchForVoxyClient"
 		]
 	},
 	"mixins": [
@@ -30,9 +26,12 @@
 		}
 	],
 	"depends": {
-		"fabricloader": ">=0.18.3",
-		"minecraft": "~1.21.11",
-		"java": ">=21",
+		"fabricloader": ">=0.19.2",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
 		"fabric-api": "*"
+	},
+	"breaks": {
+		"voxy": "<0.2.0"
 	}
 }
