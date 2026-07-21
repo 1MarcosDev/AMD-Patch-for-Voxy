@@ -21,9 +21,33 @@ public final class ShaderPatchUtil {
             "float sp = texelFetch(hizDepthSampler, ivec2(x, y), ml).r;";
 
     /**
-     * Replacement GLSL block. Values {@code <= 0.2f} are forced to {@code 1.0f}
-     * (far plane) so that driver-bogus near-zero reads cannot corrupt the
+     * Replacement GLSL block. Values {@code <= 0.2f} are forced to {@code FAR}
+     * (the far plane) so that driver-bogus near-zero reads cannot corrupt the
      * {@code REDUCTION} (min/max) operation used for HiZ occlusion culling.
+     * <p>
+     * Why use the {@code FAR} macro instead of a hardcoded {@code 1.0f}?
+     * <p>
+     * Minecraft 26.2 introduced a reversed depth buffer
+     * ("Rendering now uses a reversed depth buffer"), which changes the
+     * semantics of depth values. Voxy's HiZ shader adapts to both depth
+     * conventions via the {@code USE_REVERSE_Z} macro (see Voxy's
+     * {@code depthutils.glsl}):
+     * <ul>
+     *   <li><strong>Standard-Z</strong> (MC 26.1.2 and earlier):
+     *       {@code FAR = 1.0f}, {@code REDUCTION = max}. Setting bogus values
+     *       to {@code FAR} pushes {@code pointSample} to the far plane, so the
+     *       region reads as "empty/far away" and nodes are not culled
+     *       (conservative).</li>
+     *   <li><strong>Reverse-Z</strong> (MC 26.2+): {@code FAR = 0.0f},
+     *       {@code REDUCTION = min}. Setting bogus values to {@code FAR} pulls
+     *       {@code pointSample} to the far plane (0.0), so the region reads as
+     *       "empty/far away" and nodes are not culled (conservative).</li>
+     * </ul>
+     * The previous implementation hardcoded {@code 1.0f}, which in Reverse-Z
+     * mode equals {@code NEAR} (the near plane). Combined with
+     * {@code REDUCTION = min}, this made the region read as "full of nearby
+     * geometry", causing <em>every</em> node behind it to be culled and Voxy
+     * to appear completely disabled on MC 26.2+.
      * <p>
      * Threshold {@code 0.2f} was chosen because it covers:
      * <ul>
@@ -35,7 +59,7 @@ public final class ShaderPatchUtil {
     public static final String PATCHED_CODE = """
             float sp = texelFetch(hizDepthSampler, ivec2(x, y), ml).r;
             if (sp <= 0.2f) {
-                sp = 1.0f;
+                sp = FAR;
             }
             """;
 
