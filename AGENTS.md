@@ -76,19 +76,41 @@ public static final String ORIGINAL_LINE =
 public static final String PATCHED_CODE = """
     float sp = texelFetch(hizDepthSampler, ivec2(x, y), ml).r;
     if (sp <= 0.2f) {
-        sp = 1.0f;
+        sp = FAR;
     }
     """;
 ```
 
 ### Threshold rationale (`0.2f`)
 
-The value `0.2f` was chosen to cover:
+The value `0.2f` (compared against the **raw** sample) was chosen to cover:
 - Sky / empty pixels where depth reads as `0.0` (driver bug)
 - Close-up walls that are legitimate near-plane values
 - Driver noise on Polaris hardware
 
 **If you change this value, update the Javadoc in `ShaderPatchUtil` and the README.**
+
+### Why `FAR` instead of a literal `1.0f`
+
+Voxy's `voxy:util/depthutils.glsl` defines the depth convention two ways via the
+`USE_REVERSE_Z` compile flag:
+
+| | Standard depth | Reverse-Z (Minecraft 26.2) |
+|-------------|----------------|-----------------------------|
+| `NEAR`      | `0.0`          | `1.0`                       |
+| `FAR`       | `1.0`          | `0.0`                       |
+| `REDUCTION` | `max`          | `min`                       |
+
+Hardcoding `sp = 1.0f` only means "far plane" under **standard** depth. Under
+**reverse-Z** it pins bogus reads to the **near** plane, so the `min` reduction
+marks every distant region as occluded and **all LOD sections vanish**. The AMD
+driver returns raw near-zero values regardless of convention, so snapping
+near-zero samples to the `FAR` macro is correct in both cases and always errs
+toward rendering. `FAR` is in scope because `screenspace.glsl` imports
+`depthutils.glsl` before the patched line.
+
+**Do not replace `FAR` with a numeric literal** — it will break under whichever
+depth convention it wasn't written for.
 
 ---
 

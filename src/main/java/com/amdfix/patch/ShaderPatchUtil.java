@@ -21,21 +21,36 @@ public final class ShaderPatchUtil {
             "float sp = texelFetch(hizDepthSampler, ivec2(x, y), ml).r;";
 
     /**
-     * Replacement GLSL block. Values {@code <= 0.2f} are forced to {@code 1.0f}
-     * (far plane) so that driver-bogus near-zero reads cannot corrupt the
+     * Replacement GLSL block. Raw samples {@code <= 0.2f} are forced to Voxy's
+     * {@code FAR} macro so that driver-bogus near-zero reads cannot corrupt the
      * {@code REDUCTION} (min/max) operation used for HiZ occlusion culling.
      * <p>
-     * Threshold {@code 0.2f} was chosen because it covers:
+     * <strong>Why {@code FAR} and not a literal {@code 1.0f}:</strong> Voxy's
+     * {@code depthutils.glsl} defines the depth convention two ways depending on
+     * the {@code USE_REVERSE_Z} compile flag. Under standard depth {@code FAR}
+     * is {@code 1.0} and {@code REDUCTION} is {@code max}; under reverse-Z (used
+     * by Minecraft 26.2's renderer) {@code FAR} is {@code 0.0} and
+     * {@code REDUCTION} is {@code min}. Hardcoding {@code 1.0f} pins bogus reads
+     * to the <em>near</em> plane under reverse-Z, which makes the culler treat
+     * every distant region as occluded and hides all LOD sections. Using the
+     * {@code FAR} macro is correct in both conventions — the AMD driver returns
+     * raw near-zero values regardless of convention, so "snap near-zero to
+     * {@code FAR}" always errs toward rendering (conservative culling).
+     * <p>
+     * Threshold {@code 0.2f} (compared against the raw sample) covers:
      * <ul>
      *   <li>Sky/empty pixels where depth may read as {@code 0.0}</li>
      *   <li>Close-up walls that are legitimate near-plane values</li>
      *   <li>Noise introduced by the AMD Polaris driver bug</li>
      * </ul>
+     * {@code FAR} is defined in {@code voxy:util/depthutils.glsl}, which is
+     * imported by {@code screenspace.glsl} before this line, so it is always in
+     * scope at the injection point.
      */
     public static final String PATCHED_CODE = """
             float sp = texelFetch(hizDepthSampler, ivec2(x, y), ml).r;
             if (sp <= 0.2f) {
-                sp = 1.0f;
+                sp = FAR;
             }
             """;
 
