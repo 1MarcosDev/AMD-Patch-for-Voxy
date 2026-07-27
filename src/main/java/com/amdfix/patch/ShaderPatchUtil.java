@@ -34,7 +34,7 @@ public final class ShaderPatchUtil {
      */
     public static final String PATCHED_CODE = """
             float sp = texelFetch(hizDepthSampler, ivec2(x, y), ml).r;
-            if (sp <= 0.2f) {
+            if (sp <= 0.001953125f) {
                 sp = 1.0f;
             }
             """;
