@@ -49,8 +49,8 @@ To fix the rendering corruption on AMD cards, this patch may need to alter or di
 
 ## Requirements
 
-- **Minecraft:** `26.1.2`
-- **Fabric Loader:** `>= 0.19.2`
+- **Minecraft:** `26.2`
+- **Fabric Loader:** `>= 0.19.3`
 - **Java:** `25`
 - **[Voxy](https://github.com/MCRcortex/voxy):** `>= 0.2.0`
 
